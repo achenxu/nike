@@ -252,7 +252,7 @@ def main():
     # TODO: load configuration from DB
     db = database()
     iteration = iter(db.info)
-    context = map(str, nikeWeb)
+    context = {}
 
     try:
         rec = iteration.next()
