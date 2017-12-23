@@ -31,8 +31,8 @@ import csv
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-SHOE_TYPE = u'Air Jordan'
-TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-11-win-like-96'
+SHOE_TYPE = u'Nike'
+TARGET = 'https://www.nike.com/cn/launch/t/hyperadapt-1-0-habanero-red'
 # Address
 SURNAME = u'张'
 
@@ -225,12 +225,12 @@ class nikeWeb(object):
                 'click',
                 None
             ),
-#            nikeWeb.orchestration(
-#                None,
-#                (By.LINK_TEXT, u'提交订单'),
-#                'click',
-#                None
-#            ),
+            nikeWeb.orchestration(
+                None,
+                (By.LINK_TEXT, u'提交订单'),
+                'click',
+                None
+            ),
         ]
         self._orchestra(orchestrations, self._payment.__name__)
 
@@ -277,7 +277,7 @@ def main():
     except StopIteration:
         pass
 
-    time.sleep(60)
+    time.sleep(1800)
 
 
 if __name__ == '__main__':
