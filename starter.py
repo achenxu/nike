@@ -12,7 +12,8 @@ class confDB(object):
     DEBUG = True
     SUBMIT = True
     ENGINE = "nike"
-    SELECTIONS = ['40','39, '41','42','42.5']
+    TIMER = "09:00:00"
+    SELECTIONS = ['40','39', '41','42','42.5']
 
     def __init__(self):
         self.info = []
@@ -29,11 +30,12 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "dne:",
+            "dnet:",
             [
                 "debug",
                 "nosubmit",
-                "engine"
+                "engine",
+                "timer"
             ]
         )
         print("============ opts ==================");
@@ -56,6 +58,12 @@ def processArg():
                     confDB.ENGINE = a
                 else:
                     raise getopt.GetoptError()
+            if o in ("-t", "--timer"):
+                  # After logged in, start a timer to put the deal,
+                  # Normaly the timer will be set to 9:00 AM,
+                  # Change it by -t/--timer args
+                  confDB.TIMER = a
+
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
         print("ERROR: Invalid arguments!")
@@ -82,7 +90,12 @@ def main():
             try:
                 mod = importlib.import_module(confDB.ENGINE)
                 drvClass = getattr(mod, "WebDrv")
-                web = drvClass(confDB.DEBUG, confDB.SUBMIT, confDB.SELECTIONS)
+                web = drvClass(
+                    confDB.TIMER,
+                    confDB.DEBUG,
+                    confDB.SUBMIT,
+                    confDB.SELECTIONS,
+                )
                 web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
                 context[web.USER_NAME] = web
                 web.startOrchestration()
@@ -91,10 +104,11 @@ def main():
                     username = web.USER_NAME
                 ))
                 web.close()
-                time.sleep(10)
+                time.sleep(5)
                 continue
             else:
-                print("Deal for {username} is done!".format(username = web.USER_NAME))
+                print("{t}: Deal for {username} is done!".format(t=time.asctime(time.localtime()),
+                                                                 username=web.USER_NAME))
                 rec = next(iteration)
                 time.sleep(10)
     except StopIteration:

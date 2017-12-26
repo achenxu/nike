@@ -24,6 +24,7 @@ from collections import namedtuple
 import time
 import sys
 import csv
+import sched
 
 
 # TODO: Following content should be put into a DB
@@ -55,10 +56,23 @@ class WebDrv(object):
         verbose = False
     )
 
-    def __init__(self, debug = True, submit = False, selections = []):
+    def __init__(self, timer, debug = True, submit = False, selections = []):
         self.debug = debug
         self.submit = submit
         self.selections = selections
+        now = time.localtime()
+        self.timer = time.mktime(
+            time.strptime(
+                "{year}-{month}-{day} {t}".format(
+                    year=now.tm_year,
+                    month=now.tm_mon,
+                    day=now.tm_mday,
+                    t=timer),
+                "%Y-%m-%d %X")
+        )
+        if self.timer < time.mktime(now):
+            print "Invalid timer! Will put the deal directly!"
+            self.timer = None
         self.driver = webdriver.Chrome()
         self.driver.maximize_window()
         self._reloadPage()
@@ -251,6 +265,21 @@ class WebDrv(object):
 
     def startOrchestration(self):
         self._login()
+        if self.timer:
+            s = sched.scheduler(time.time, time.sleep)
+            s.enterabs(self.timer, 0, self.timerFunc, [])
+            s.run()
+        else:
+            self.timerFunc()
+
+    def timerFunc(self):
+        self._reloadPage()
+        WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
+                EC.element_to_be_clickable((
+                    By.CLASS_NAME,
+                    'size-selector-component'
+                ))
+        )
         self._submitSize()
         self._clickPurchaseButton()
         self._submitAddress()
