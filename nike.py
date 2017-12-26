@@ -36,6 +36,7 @@ TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-6-black-university-blue'
 # Address
 # SURNAME = u'张'
 
+
 class doItAgain(Exception):
     pass
 
@@ -54,12 +55,26 @@ class WebDrv(object):
         verbose = False
     )
 
-    def __init__(self, debug = True, submit = False):
+    def __init__(self, debug = True, submit = False, selections = []):
         self.debug = debug
         self.submit = submit
+        self.selections = selections
         self.driver = webdriver.Chrome()
         self.driver.maximize_window()
         self._reloadPage()
+
+    def retry(func):
+        def con(self, *args, **kargs):
+            retry = True
+            while (retry):
+                try:
+                    return func(self, *args, **kargs)
+                except doItAgain, e:
+                    self.selections.remove(self.SHOE_SIZE)
+                    self.SHOE_SIZE = self.selections[0]
+                else:
+                    retry = False
+        return con
 
     def _error_handle(self, n):
         #sys.exit(n)
@@ -136,6 +151,7 @@ class WebDrv(object):
         self._orchestra(orchestrations, self._login.__name__)
         time.sleep(8)
 
+    @retry
     def _submitSize(self):
         orchestrations = [
             WebDrv.orchestration(

@@ -12,6 +12,7 @@ class confDB(object):
     DEBUG = True
     SUBMIT = False
     ENGINE = "nike"
+    SELECTIONS = ['40','41','42']
 
     def __init__(self):
         self.info = []
@@ -81,7 +82,7 @@ def main():
             try:
                 mod = importlib.import_module(confDB.ENGINE)
                 drvClass = getattr(mod, "WebDrv")
-                web = drvClass(confDB.DEBUG, confDB.SUBMIT)
+                web = drvClass(confDB.DEBUG, confDB.SUBMIT, confDB.SELECTIONS)
                 web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
                 context[web.USER_NAME] = web
                 web.startOrchestration()
