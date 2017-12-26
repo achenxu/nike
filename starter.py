@@ -10,9 +10,9 @@ import importlib
 
 class confDB(object):
     DEBUG = True
-    SUBMIT = False
+    SUBMIT = True
     ENGINE = "nike"
-    SELECTIONS = ['40','41','42']
+    SELECTIONS = ['40','39, '41','42','42.5']
 
     def __init__(self):
         self.info = []
@@ -29,10 +29,10 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "dse:",
+            "dne:",
             [
                 "debug",
-                "submit",
+                "nosubmit",
                 "engine"
             ]
         )
@@ -46,10 +46,10 @@ def processArg():
                 # driver), but in the future the default mode should be no-debug
                 # mode, which is using no-browser
                 confDB.DEBUG = True
-            if o in ("-s", "--submit"):
+            if o in ("-n", "--nosubmit"):
                 # WILL submit the deal finally.
                 # By default this flag is turned OFF.
-                confDB.SUBMIT = True
+                confDB.SUBMIT = False
             if o in ("-e", "--engine"):
                 # Default Nikeweb, right now only supports nike
                 if a in ("nike"):
