@@ -33,7 +33,7 @@ import sched
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
 SHOE_TYPE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-6-black-university-blue'
+TARGET = 'https://www.nike.com/cn/launch/t/air-zoom-generation-black-varsity-crimson-white'
 # Address
 # SURNAME = u'张'
 
