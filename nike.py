@@ -33,7 +33,7 @@ import sched
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
 SHOE_TYPE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-zoom-generation-black-varsity-crimson-white'
+TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-6-black-university-blue'
 # Address
 # SURNAME = u'张'
 
@@ -43,7 +43,7 @@ class doItAgain(Exception):
 
 
 class WebDrv(object):
-    TIMEOUT = 10
+    TIMEOUT = 30
 
     orchestration = namedtuple(
         'orchestration',
@@ -273,6 +273,7 @@ class WebDrv(object):
             self.timerFunc()
 
     def timerFunc(self):
+        print("{t}:Orchestration of {u} starts!".format(t = time.asctime(time.localtime()), u = self.USER_NAME))
         self._reloadPage()
         WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
                 EC.element_to_be_clickable((

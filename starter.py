@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os
+import re
 import sys
 import getopt
 import nike
@@ -13,7 +15,8 @@ class confDB(object):
     SUBMIT = True
     ENGINE = "nike"
     TIMER = "09:00:00"
-    SELECTIONS = ['42','43', '44']
+    SELECTIONS = ['42.5','43', '42']
+    CONT = 0
 
     def __init__(self):
         self.info = []
@@ -30,12 +33,13 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "dnet:",
+            "dne:t:c:",
             [
                 "debug",
                 "nosubmit",
                 "engine",
-                "timer"
+                "timer",
+                "continuous"
             ]
         )
         print("============ opts ==================");
@@ -59,16 +63,44 @@ def processArg():
                 else:
                     raise getopt.GetoptError()
             if o in ("-t", "--timer"):
-                  # After logged in, start a timer to put the deal,
-                  # Normaly the timer will be set to 9:00 AM,
-                  # Change it by -t/--timer args
-                  confDB.TIMER = a
+                # After logged in, start a timer to put the deal,
+                # Normaly the timer will be set to 9:00 AM,
+                # Change it by -t/--timer args
+                confDB.TIMER = a
+            if o in ("-c", "--continuous"):
+                # Start the orchestration one by one
+                # By default disabled(confDB.CONT = 0)
+                confDB.CONT = int(a)
 
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
         print("ERROR: Invalid arguments!")
         usage()
         sys.exit(255)
+
+def startOrch(rec, diff):
+    mod = importlib.import_module(confDB.ENGINE)
+    drvClass = getattr(mod, "WebDrv")
+    while(True):
+        try:
+            web = drvClass(
+                re.sub("[0-9]*$", str(diff), confDB.TIMER),
+                confDB.DEBUG,
+                confDB.SUBMIT,
+                confDB.SELECTIONS
+            )
+            web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
+            web.startOrchestration()
+        except nike.doItAgain, e:
+            print("{username} Failed! try again!".format(
+                username = web.USER_NAME))
+            web.close()
+            time.sleep(5)
+            continue
+        else:
+            print("{t}: Deal for {username} is done!".format(t=time.asctime(time.localtime()),
+                                                            username=web.USER_NAME))
+            time.sleep(3600)
 
 def main():
     # Chinese support
@@ -81,40 +113,23 @@ def main():
     # TODO: load configuration from DB
     db = confDB()
     iteration = iter(db.info)
-    context = {}
+    n = 0
 
     try:
         rec = iteration.next()
         while True:
             # start process
-            try:
-                mod = importlib.import_module(confDB.ENGINE)
-                drvClass = getattr(mod, "WebDrv")
-                web = drvClass(
-                    confDB.TIMER,
-                    confDB.DEBUG,
-                    confDB.SUBMIT,
-                    confDB.SELECTIONS,
-                )
-                web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
-                context[web.USER_NAME] = web
-                web.startOrchestration()
-            except nike.doItAgain, e:
-                print("{username} Failed! try again!".format(
-                    username = web.USER_NAME
-                ))
-                web.close()
-                time.sleep(5)
-                continue
+            pid = os.fork()
+            if pid == 0:
+                startOrch(rec, confDB.CONT * n)
             else:
-                print("{t}: Deal for {username} is done!".format(t=time.asctime(time.localtime()),
-                                                                 username=web.USER_NAME))
                 rec = next(iteration)
+                n = n + 1
                 time.sleep(10)
     except StopIteration:
         pass
 
-    time.sleep(1800)
+    time.sleep(3600)
 
 if __name__ == '__main__':
     main()
