@@ -32,11 +32,9 @@ import sched
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-SHOE_TYPE = u'The'
-TARGET = 'https://www.nike.com/cn/launch/t/the-ten-react-hyperdunk-2017-off-white'
-#TARGET = 'https://www.nike.com/cn/launch/t/the-ten-blazer-studio-mid-off-white'
-#TARGET = 'https://www.nike.com/cn/launch/t/the-ten-air-force-1-low-off-white'
-#TARGET = 'https://www.nike.com/cn/launch/t/the-ten-air-max-97-off-white'
+TITLE = u'即将推出'
+TARGET = 'https://www.nike.com/cn/launch/?s=upcoming'
+SHOE_URL = '/cn/launch/t/the-ten-air-max-90-off-white'
 # Address
 # SURNAME = u'张'
 
@@ -103,12 +101,11 @@ class WebDrv(object):
         try:
             # Confirm whether the page's opened
             WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
-                EC.title_contains(SHOE_TYPE)
+                EC.title_contains(TITLE)
             )
         except TimeoutException, e:
             # Wrong URL?
-            print("Cannot open the webpage, wrong shoe({shoe_type})?"
-                  .format(shoe_type = SHOE_TYPE))
+            print("Cannot open the webpage")
             self._error_handle(1)
 
     def _orchestra(self, orchestrations, name):
@@ -142,7 +139,7 @@ class WebDrv(object):
         orchestrations = [
             WebDrv.orchestration(
                 None,
-                (By.LINK_TEXT, u'登录'),
+                (By.LINK_TEXT, u'加入/登录'),
                 'click',
                 None
             ),
@@ -281,8 +278,20 @@ class WebDrv(object):
 
         self._orchestra(orchestrations, self._payment.__name__)
 
+    def _prepare(self):
+        orchestrations = [
+            WebDrv.orchestration(
+                None,
+                (By.CSS_SELECTOR, 'a[href="{ref}"]'.format(ref=SHOE_URL)),
+                'click',
+                None
+            ),
+        ]
+        self._orchestra(orchestrations, self._prepare.__name__)
+
     def startOrchestration(self):
         self._login()
+        self._prepare()
         if self.timer:
             s = sched.scheduler(time.time, time.sleep)
             s.enterabs(self.timer, 0, self.timerFunc, [])
