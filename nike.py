@@ -142,7 +142,7 @@ class WebDrv(object):
         orchestrations = [
             WebDrv.orchestration(
                 None,
-                (By.LINK_TEXT, u'加入/登录'),
+                (By.LINK_TEXT, u'登录'),
                 'click',
                 None
             ),
@@ -197,7 +197,14 @@ class WebDrv(object):
                 'click',
                 None
             ),
+            WebDrv.orchestration(
+                None,
+                (By.LINK_TEXT, u'确定'),
+                'click',
+                None
+            ),
         ]
+
         self._orchestra(orchestrations, self._clickPurchaseButton.__name__)
 
     def _submitAddress(self):
@@ -262,6 +269,14 @@ class WebDrv(object):
                     'click',
                     None
                 )
+            )
+            orchestrations.append(
+                WebDrv.orchestration(
+                    None,
+                    (By.LINK_TEXT, u'确认'),
+                    'click',
+                    None
+            ),
             )
 
         self._orchestra(orchestrations, self._payment.__name__)
