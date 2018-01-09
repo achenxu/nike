@@ -32,8 +32,8 @@ import sched
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-SHOE_TYPE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-zoom-generation-black-varsity-crimson-white'
+TITLE = u'即将推出'
+TARGET = 'https://www.nike.com/cn/launch/?s=upcoming'
 # Address
 # SURNAME = u'张'
 
@@ -43,7 +43,7 @@ class doItAgain(Exception):
 
 
 class WebDrv(object):
-    TIMEOUT = 10
+    TIMEOUT = 30
 
     orchestration = namedtuple(
         'orchestration',
@@ -56,7 +56,9 @@ class WebDrv(object):
         verbose = False
     )
 
-    def __init__(self, timer, debug = True, submit = False, selections = []):
+    def __init__(self, target_url, timer, debug = True, submit = False, selections = []):
+        self.target_url = target_url
+        print '...target url is:' + self.target_url
         self.debug = debug
         self.submit = submit
         self.selections = selections
@@ -100,12 +102,11 @@ class WebDrv(object):
         try:
             # Confirm whether the page's opened
             WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
-                EC.title_contains(SHOE_TYPE)
+                EC.title_contains(TITLE)
             )
         except TimeoutException, e:
             # Wrong URL?
-            print("Cannot open the webpage, wrong shoe({shoe_type})?"
-                  .format(shoe_type = SHOE_TYPE))
+            print("Cannot open the webpage")
             self._error_handle(1)
 
     def _orchestra(self, orchestrations, name):
@@ -194,6 +195,12 @@ class WebDrv(object):
                 'click',
                 None
             ),
+            WebDrv.orchestration(
+                None,
+                (By.LINK_TEXT, u'确定'),
+                'click',
+                None
+            ),
         ]
         self._orchestra(orchestrations, self._clickPurchaseButton.__name__)
 
@@ -260,11 +267,31 @@ class WebDrv(object):
                     None
                 )
             )
+            orchestrations.append(
+                WebDrv.orchestration(
+                    None,
+                    (By.LINK_TEXT, u'确认'),
+                    'click',
+                    None
+            ),
+            )
 
         self._orchestra(orchestrations, self._payment.__name__)
 
+    def _prepare(self):
+        orchestrations = [
+            WebDrv.orchestration(
+                None,
+                (By.CSS_SELECTOR, 'a[href="{ref}"]'.format(ref=self.target_url[self.target_url.find('/cn/launch/'):])),
+                'click',
+                None
+            ),
+        ]
+        self._orchestra(orchestrations, self._prepare.__name__)
+
     def startOrchestration(self):
         self._login()
+        self._prepare()
         if self.timer:
             s = sched.scheduler(time.time, time.sleep)
             s.enterabs(self.timer, 0, self.timerFunc, [])
@@ -273,6 +300,7 @@ class WebDrv(object):
             self.timerFunc()
 
     def timerFunc(self):
+        print("{t}:Orchestration of {u} starts!".format(t = time.asctime(time.localtime()), u = self.USER_NAME))
         self._reloadPage()
         WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
                 EC.element_to_be_clickable((
