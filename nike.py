@@ -34,7 +34,7 @@ import sched
 # TODO: Shall we let user input the url?
 TITLE = u'即将推出'
 TARGET = 'https://www.nike.com/cn/launch/?s=upcoming'
-SHOE_URL = '/cn/launch/t/the-ten-air-max-90-off-white'
+SHOE_URL = '/cn/launch/t/the-ten-zoom-fly-off-white'
 # Address
 # SURNAME = u'张'
 
@@ -270,7 +270,7 @@ class WebDrv(object):
             orchestrations.append(
                 WebDrv.orchestration(
                     None,
-                    (By.LINK_TEXT, u'确认'),
+                    (By.CLASS_NAME, u'js-confirm'),
                     'click',
                     None
             ),
