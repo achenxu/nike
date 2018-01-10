@@ -32,8 +32,8 @@ import sched
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-TITLE = u'即将推出'
-TARGET = 'https://www.nike.com/cn/launch/?s=upcoming'
+TITLE = u'Nike'
+TARGET = 'https://www.nike.com/cn/launch/t/air-force-1-cr7-golden-patchwork'
 SHOE_URL = '/cn/launch/t/the-ten-zoom-fly-off-white'
 # Address
 # SURNAME = u'张'
@@ -136,10 +136,17 @@ class WebDrv(object):
             time.sleep(1)
 
     def _login(self):
+        try:
+            elem = self.driver.find_element_by_link_text(u'登录')
+        except NoSuchElementException:
+            loginStr =  u'加入/登录'
+        else:
+            loginStr = u'登录'
+
         orchestrations = [
             WebDrv.orchestration(
                 None,
-                (By.LINK_TEXT, u'加入/登录'),
+                (By.LINK_TEXT, loginStr),
                 'click',
                 None
             ),
@@ -291,7 +298,6 @@ class WebDrv(object):
 
     def startOrchestration(self):
         self._login()
-        self._prepare()
         if self.timer:
             s = sched.scheduler(time.time, time.sleep)
             s.enterabs(self.timer, 0, self.timerFunc, [])
@@ -301,7 +307,7 @@ class WebDrv(object):
 
     def timerFunc(self):
         print("{t}:Orchestration of {u} starts!".format(t = time.asctime(time.localtime()), u = self.USER_NAME))
-        self._reloadPage()
+        #self._reloadPage()
         WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
                 EC.element_to_be_clickable((
                     By.CLASS_NAME,
