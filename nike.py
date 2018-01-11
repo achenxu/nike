@@ -32,8 +32,8 @@ import sched
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-TITLE = u'Nike'
-TARGET = 'https://www.nike.com/cn/launch/t/air-force-1-cr7-golden-patchwork'
+TITLE = u'女款'
+TARGET = 'https://www.nike.com/cn/launch/t/womens-sf-af-1-mid-vast-grey-gum-light-brown'
 SHOE_URL = '/cn/launch/t/the-ten-zoom-fly-off-white'
 # Address
 # SURNAME = u'张'
