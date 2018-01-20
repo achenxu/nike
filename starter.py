@@ -9,6 +9,7 @@ import nike
 import time
 import csv
 import importlib
+import sched
 
 class confDB(object):
     DEBUG = True
@@ -25,6 +26,28 @@ class confDB(object):
             for row in csvFile :
                 self.info.append(row)
 
+def doNothing():
+    pass
+
+def setupTimerAndWait(timeStr):
+    now = time.localtime()
+    timer = time.mktime(
+        time.strptime(
+            "{year}-{month}-{day} {t}".format(
+                year=now.tm_year,
+                month=now.tm_mon,
+                day=now.tm_mday,
+                t=timeStr
+            ),
+            "%Y-%m-%d %X")
+    )
+    if timer < time.mktime(now):
+        print "Invalid timer! Will run the script immediately!"
+        return
+    s = sched.scheduler(time.time, time.sleep)
+    s.enterabs(timer, 0, doNothing, [])
+    s.run()
+
 def usage():
     # TODO: Shall we add something here?
     print("I'm lasy...")
@@ -33,13 +56,14 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "dne:t:c:",
+            "dne:t:c:s:",
             [
                 "debug",
                 "nosubmit",
                 "engine",
                 "timer",
-                "continuous"
+                "continuous",
+                "start_script"
             ]
         )
         print("============ opts ==================");
@@ -71,6 +95,11 @@ def processArg():
                 # Start the orchestration one by one
                 # By default disabled(confDB.CONT = 0)
                 confDB.CONT = int(a)
+            if o in ("-s", "--start_script"):
+                # overall script's timer;
+                # if the param's set then let's wait
+                setupTimerAndWait(a)
+                print("GOGOGO")
 
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
