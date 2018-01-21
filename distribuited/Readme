@@ -1,0 +1,5 @@
+distributed.py: main function
+nodeMonitor.sh: should be put in /opt/nike/, aim to keep node selenium running
+nodes.csv: you see
+remoteFn.py: you see
+tried_various_proxy.py: useless, just backup
