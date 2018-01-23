@@ -32,9 +32,8 @@ import sched
 #PASSWD = 'Nike6326424'
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-TITLE = u'Nike'
-TARGET = 'https://www.nike.com/cn/launch/t/air-force-1-cr7-golden-patchwork'
-SHOE_URL = '/cn/launch/t/the-ten-zoom-fly-off-white'
+TITLE = u'Air'
+TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-13-black-olive'
 # Address
 # SURNAME = u'张'
 
@@ -42,6 +41,8 @@ SHOE_URL = '/cn/launch/t/the-ten-zoom-fly-off-white'
 class doItAgain(Exception):
     pass
 
+class wrongShoeSize(Exception):
+    pass
 
 class WebDrv(object):
     TIMEOUT = 30
@@ -85,7 +86,10 @@ class WebDrv(object):
                 try:
                     return func(self, *args, **kargs)
                 except doItAgain, e:
-                    self.selections.remove(self.SHOE_SIZE)
+                    pass
+                except wrongShoeSize, e:
+                    if len(self.selections) > 1:
+                        self.selections.remove(self.SHOE_SIZE)
                     self.SHOE_SIZE = self.selections[0]
                 else:
                     retry = False
@@ -191,8 +195,13 @@ class WebDrv(object):
                 None
             ),
         ]
-        self._orchestra(orchestrations, self._submitSize.__name__)
+        try:
+            self._orchestra(orchestrations, self._submitSize.__name__)
+        except doItAgain, e:
+            # The shoe size's unavailable, need to select another size
+            raise wrongShoeSize()
 
+    @retry
     def _clickPurchaseButton(self):
         orchestrations = [
             WebDrv.orchestration(
@@ -250,6 +259,7 @@ class WebDrv(object):
             # No need to submit address
             return
 
+    @retry
     def _payment(self):
         orchestrations = [
             WebDrv.orchestration(
@@ -296,6 +306,9 @@ class WebDrv(object):
         ]
         self._orchestra(orchestrations, self._prepare.__name__)
 
+    def _getPaymentUrl(self):
+        pass
+
     def startOrchestration(self):
         self._login()
         if self.timer:
@@ -318,6 +331,7 @@ class WebDrv(object):
         self._clickPurchaseButton()
         self._submitAddress()
         self._payment()
+        self._getPaymentUrl()
 
     def close(self):
         self.driver.close()
