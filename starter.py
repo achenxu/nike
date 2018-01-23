@@ -16,7 +16,7 @@ class confDB(object):
     SUBMIT = True
     ENGINE = "nike"
     TIMER = "09:00:00"
-    SELECTIONS = ['42.5','43', '42']
+    SELECTIONS = ['36','37','38']
     CONT = 0
 
     def __init__(self):
