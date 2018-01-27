@@ -158,7 +158,7 @@ def main():
     processArg()
 
     # For distrubited running
-    grid = gridService()
+    grid = distributed.gridService()
     if confDB.DISTRIBUTED == True:
         grid.startService()
 
