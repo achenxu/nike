@@ -52,7 +52,7 @@ class WebDrv(object):
         [
             'driver',
             'locator',
-            'action',   # click or send_keys
+            'action',   # click or send_keys or save_screenshot
             'data',     # Optional, only for send_keys
         ],
         verbose = False
@@ -129,9 +129,11 @@ class WebDrv(object):
                         EC.element_to_be_clickable(orch.locator)
                     )
                     action()
-                else :
-                    # send_keys
+                elif orch.action == 'send_keys':
                     action(orch.data)
+                elif orch.action == 'save_screenshot':
+                    driver.save_screenshot(self.USER_NAME + '.png')
+
             except (TimeoutException, WebDriverException) as e:
                 print("Error happens during running {script}! Error message is {err}"
                       .format(script = name, err = e))
@@ -306,8 +308,16 @@ class WebDrv(object):
         ]
         self._orchestra(orchestrations, self._prepare.__name__)
 
-    def _getPaymentUrl(self):
-        pass
+    def _getPaymentQR(self):
+        orchestrations = [
+            WebDrv.orchestration(
+                None,
+                (By.CLASS_NAME, 'QRIframeContainer'),
+                'save_screenshot',
+                None
+            ),
+        ]
+        self._orchestra(orchestrations, self._prepare.__name__)
 
     def startOrchestration(self):
         self._login()
@@ -331,7 +341,10 @@ class WebDrv(object):
         self._clickPurchaseButton()
         self._submitAddress()
         self._payment()
-        self._getPaymentUrl()
+        while(1):
+            print("%s: Taking screenshot to %s".format(self.USER_NAME, self.USER_NAME + '.png'))
+            self._getPaymentQR()
+            time.sleep(100)
 
     def close(self):
         self.driver.close()
