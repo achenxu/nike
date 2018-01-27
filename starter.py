@@ -119,13 +119,23 @@ def startOrch(rec, diff):
     drvClass = getattr(mod, "WebDrv")
     while(True):
         try:
-            web = drvClass(
-                re.sub("[0-9]*$", str(diff), confDB.TIMER),
-                distributed.genRemoteDrv(),
-                confDB.DEBUG,
-                confDB.SUBMIT,
-                confDB.SELECTIONS
-            )
+            if confDB.DISTRIBUTED == True:
+                web = drvClass(
+                    re.sub("[0-9]*$", str(diff), confDB.TIMER),
+                    distributed.genRemoteDrv(),
+                    confDB.DEBUG,
+                    confDB.SUBMIT,
+                    confDB.SELECTIONS
+                )
+            else:
+                web = drvClass(
+                    re.sub("[0-9]*$", str(diff), confDB.TIMER),
+                    None,
+                    confDB.DEBUG,
+                    confDB.SUBMIT,
+                    confDB.SELECTIONS
+                )
+
             web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
             web.startOrchestration()
         except nike.doItAgain, e:
