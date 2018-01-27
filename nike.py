@@ -58,7 +58,7 @@ class WebDrv(object):
         verbose = False
     )
 
-    def __init__(self, timer, debug = True, submit = False, selections = []):
+    def __init__(self, timer, drv = None, debug = True, submit = False, selections = []):
         self.debug = debug
         self.submit = submit
         self.selections = selections
@@ -75,7 +75,10 @@ class WebDrv(object):
         if self.timer < time.mktime(now):
             print "Invalid timer! Will put the deal directly!"
             self.timer = None
-        self.driver = webdriver.Chrome()
+        if drv == None:
+            self.driver = webdriver.Chrome()
+        else:
+            self.driver = drv
         self.driver.maximize_window()
         self._reloadPage()
 

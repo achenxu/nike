@@ -10,6 +10,7 @@ import time
 import csv
 import importlib
 import sched
+import distributed
 
 class confDB(object):
     DEBUG = True
@@ -18,6 +19,7 @@ class confDB(object):
     TIMER = "09:00:00"
     SELECTIONS = ['36','37','38']
     CONT = 0
+    DISTRIBUTED = False
 
     def __init__(self):
         self.info = []
@@ -56,14 +58,15 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "dne:t:c:s:",
+            "Ddne:t:c:s:",
             [
                 "debug",
                 "nosubmit",
                 "engine",
                 "timer",
                 "continuous",
-                "start_script"
+                "start_script",
+                "distributed"
             ]
         )
         print("============ opts ==================");
@@ -100,6 +103,10 @@ def processArg():
                 # if the param's set then let's wait
                 setupTimerAndWait(a)
                 print("GOGOGO")
+            if o in ("-D", "--distributed"):
+                # For distributed running
+                # Default: False
+                confDB.DISTRIBUTED = True
 
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
@@ -114,6 +121,7 @@ def startOrch(rec, diff):
         try:
             web = drvClass(
                 re.sub("[0-9]*$", str(diff), confDB.TIMER),
+                distributed.genRemoteDrv(),
                 confDB.DEBUG,
                 confDB.SUBMIT,
                 confDB.SELECTIONS
@@ -139,6 +147,11 @@ def main():
     # Process cmdline arguments
     processArg()
 
+    # For distrubited running
+    grid = gridService()
+    if confDB.DISTRIBUTED == True:
+        grid.startService()
+
     # TODO: load configuration from DB
     db = confDB()
     iteration = iter(db.info)
@@ -159,6 +172,9 @@ def main():
         pass
 
     time.sleep(3600)
+
+    if confDB.DISTRIBUTED == True:
+        grid.stopService()
 
 if __name__ == '__main__':
     main()
