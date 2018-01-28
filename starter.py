@@ -11,6 +11,8 @@ import csv
 import importlib
 import sched
 import distributed
+import proxyAgent
+
 
 class confDB(object):
     DEBUG = True
@@ -20,6 +22,7 @@ class confDB(object):
     SELECTIONS = ['36','37','38']
     CONT = 0
     DISTRIBUTED = False
+    USEPROXY = False
 
     def __init__(self):
         self.info = []
@@ -58,7 +61,7 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "Ddne:t:c:s:",
+            "Dpdne:t:c:s:",
             [
                 "debug",
                 "nosubmit",
@@ -66,7 +69,8 @@ def processArg():
                 "timer",
                 "continuous",
                 "start_script",
-                "distributed"
+                "distributed",
+                "useProxy"
             ]
         )
         print("============ opts ==================");
@@ -107,6 +111,10 @@ def processArg():
                 # For distributed running
                 # Default: False
                 confDB.DISTRIBUTED = True
+            if o in ("-p", "--useproxy"):
+                # Using proxy for distributed running
+                # Default: False
+                confDB.USEPROXY = True
 
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
@@ -122,7 +130,7 @@ def startOrch(rec, diff):
             if confDB.DISTRIBUTED == True:
                 web = drvClass(
                     re.sub("[0-9]*$", str(diff), confDB.TIMER),
-                    distributed.genRemoteDrv(),
+                    distributed.genRemoteDrv(confDB.USEPROXY),
                     confDB.DEBUG,
                     confDB.SUBMIT,
                     confDB.SELECTIONS
@@ -156,6 +164,14 @@ def main():
 
     # Process cmdline arguments
     processArg()
+
+    # For Proxy
+    if confDB.USEPROXY == True:
+        print "Sleep for 1 minutes for scripts to collect enough proxy ips..."
+        res = os.fork()
+        if res == 0:
+            proxyAgent.proxyStart()
+        time.sleep(60) 
 
     # For distrubited running
     grid = distributed.gridService()

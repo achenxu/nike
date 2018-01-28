@@ -4,6 +4,8 @@
 import time
 import csv
 import os
+import json
+import random
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import Proxy
@@ -11,12 +13,13 @@ from selenium.webdriver.common.proxy import ProxyType
 from remoteFn import action
 
 
-useProxy = 0
+useProxy = 1
 accountNum = 5
 startHubCmd = 'java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role hub &'
 NodeFile = '/opt/nike/nodeStarter.sh'
 startNodeCmd = 'echo "java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role node -hub http://{hub_ip}:4444/grid/register -maxSession {max_sessions} -browser browserName=firefox,maxInstances={max_instances},platform=LINUX,seleniumProtocol=WebDriver &" > {file_name}'
 stopCmd = 'killall java'
+validIps = []
 
 
 class gridService(object):
@@ -64,20 +67,37 @@ def genRemoteDrv(useProxy = False):
     capabilities = DesiredCapabilities.FIREFOX
     capabilities["platform"] = "ANY"
     capabilities["maxInstances"] = 35
-
-    # proxy works now but need try ip agent services
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference('network.proxy.type', 1)
-    profile.set_preference('network.proxy.http', '192.168.2.1')
-    profile.set_preference('network.proxy.http_port', 1234)
-    profile.set_preference('network.proxy.ssl', 'proxy_url')
-    profile.set_preference('network.proxy.ssl_port', 3128)
-    profile.update_preferences()
+    
+    if len(validIps) == 0:
+        getValidIps()
 
     if useProxy:
+        useIp = validIps[random.randint(0,len(validIps)-1)]['ip']
+        print 'use url:', useIp.split(':')[0]
+        print 'use port:', useIp.split(':')[1]
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference('network.proxy.type', 1)
+        profile.set_preference('network.proxy.http', useIp.split(':')[0])
+        profile.set_preference('network.proxy.http_port', useIp.split(':')[1])
+        profile.set_preference('network.proxy.ssl', useIp.split(':')[0])
+        profile.set_preference('network.proxy.ssl_port', useIp.split(':')[1])
+        profile.update_preferences()
+
         return webdriver.Remote(command_executor="http://localhost:4444/wd/hub",  desired_capabilities=capabilities, browser_profile=profile)
     else:
         return webdriver.Remote(command_executor="http://localhost:4444/wd/hub",  desired_capabilities=capabilities)
+
+def getValidIps():
+    global validIps
+    with open('/tmp/validProxyIps', 'r') as f:
+        for i in f:
+            ip = json.loads(i)
+            if (time.time() - ip['time']) >= 270: # only use valid ips that still efective(max 5 minutes)
+                print 'skip overdued ip:'+ip['ip']
+                continue
+            else:
+                validIps.append(ip)
+    print validIps
 
 def main():
     grid = gridService()
@@ -95,7 +115,6 @@ def main():
     profile.set_preference('network.proxy.ssl', 'proxy_url')
     profile.set_preference('network.proxy.ssl_port', 3128)
     profile.update_preferences()
-
 
     #start browsers
     drivers = []
