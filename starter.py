@@ -19,7 +19,7 @@ class confDB(object):
     SUBMIT = True
     ENGINE = "nike"
     TIMER = "09:00:00"
-    SELECTIONS = ['36','37','38']
+    SELECTIONS = ['41','42','43']
     CONT = 0
     DISTRIBUTED = False
     USEPROXY = False

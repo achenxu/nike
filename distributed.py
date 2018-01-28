@@ -17,7 +17,7 @@ useProxy = 1
 accountNum = 5
 startHubCmd = 'java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role hub &'
 NodeFile = '/opt/nike/nodeStarter.sh'
-startNodeCmd = 'echo "java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role node -hub http://{hub_ip}:4444/grid/register -maxSession {max_sessions} -browser browserName=firefox,maxInstances={max_instances},platform=LINUX,seleniumProtocol=WebDriver &" > {file_name}'
+startNodeCmd = 'echo "java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role node -hub http://{hub_ip}:4444/grid/register -maxSession {max_sessions} -browser browserName=chrome,maxInstances={max_instances},platform=LINUX,seleniumProtocol=WebDriver &" > {file_name}'
 stopCmd = 'killall java'
 validIps = []
 
@@ -64,14 +64,13 @@ class gridService(object):
         gridService.startService(self)
 
 def genRemoteDrv(useProxy = False):
-    capabilities = DesiredCapabilities.FIREFOX
+    capabilities = DesiredCapabilities.CHROME
     capabilities["platform"] = "ANY"
     capabilities["maxInstances"] = 35
     
-    if len(validIps) == 0:
-        getValidIps()
-
     if useProxy:
+        if len(validIps) == 0:
+            getValidIps()
         useIp = validIps[random.randint(0,len(validIps)-1)]['ip']
         print 'use url:', useIp.split(':')[0]
         print 'use port:', useIp.split(':')[1]

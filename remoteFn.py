@@ -46,7 +46,7 @@ if __name__ == "__main__":
      #host = get_values(hostname)
      #host_ip = list(host["host_ip"])
      host_ip = ["192.168.2.10",]
-     command = 'java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role node -hub http://{hub_ip}:4444/grid/register -maxSession 35 -browser browserName=firefox,maxInstances=35,platform=LINUX,seleniumProtocol=WebDriver &'.format(hub_ip='192.168.2.6')
+     command = 'java -jar /opt/nike/selenium-server-standalone-3.8.1.jar -role node -hub http://{hub_ip}:4444/grid/register -maxSession 35 -browser browserName=chrome,maxInstances=35,platform=LINUX,seleniumProtocol=WebDriver &'.format(hub_ip='192.168.2.6')
 
      print 'command is: ', command
      

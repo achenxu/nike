@@ -126,6 +126,7 @@ class WebDrv(object):
                 elem = WebDriverWait(driver, WebDrv.TIMEOUT).until(
                     EC.visibility_of_element_located(orch.locator)
                 )
+                print '##############after visibility of element located'
                 action = getattr(elem, orch.action)
                 if orch.action == 'click' :
                     WebDriverWait(driver, WebDrv.TIMEOUT).until(
@@ -145,6 +146,7 @@ class WebDrv(object):
             time.sleep(1)
 
     def _login(self):
+        print '###_login is executed'
         try:
             elem = self.driver.find_element_by_link_text(u'登录')
         except NoSuchElementException:
