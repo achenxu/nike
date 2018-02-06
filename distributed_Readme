@@ -1,0 +1,62 @@
+All the dependent packages are in env_setup.tgz
+
+
+
+####
+
+selenium grid
+
+####
+
+mkdir /opt/nike
+
+cp selenium-server-standalone-3.8.1.jar /opt/nike/
+
+cp nodeMonitor.sh to /opt/nike/
+
+
+
+
+
+####
+
+Java:
+
+####
+
+mkdir /usr/lib/jvm
+
+tar xzf jdk-8u161-linux-x64.tar.gz -c /usr/lib/jvm/
+
+export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_161/
+
+export JRE_HOME=${JAVA_HOME}/jre  
+
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib  
+
+export PATH=${JAVA_HOME}/bin:$PATH 
+
+update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk1.8.0_161/bin/java 300
+
+update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/jdk1.8.0_161/bin/javac 300
+
+
+####
+
+Others
+
+####
+To Setup:
+1.apt-get install chromium-browser python-selenium python-paramiko openssh-server
+
+2.install chromedriver
+
+3.sudo passwd root   # set password to 123456
+
+$ sudo vi /etc/ssh/sshd_config
+
+find 'PermitRootLogin no' to be 'PermitRootLogin yes'
+
+sudo service ssh restart
+
+4. you need to run /opt/nike/nodeMonitor.sh from teamviewer session as root(for Firefox) or as regular user(for Chrome)
