@@ -36,16 +36,11 @@ def doNothing():
 
 def setupTimerAndWait(timeStr):
     now = time.localtime()
-    timer = time.mktime(
-        time.strptime(
-            "{year}-{month}-{day} {t}".format(
-                year=now.tm_year,
-                month=now.tm_mon,
-                day=now.tm_mday,
-                t=timeStr
-            ),
-            "%Y-%m-%d %X")
-    )
+    try:
+        timer = time.mktime(time.strptime(timeStr))
+    except ValueError as e:
+        print("Illegal time format!(eg: Tue Feb 6 22:00:00 2018)")
+        exit(2)
     if timer < time.mktime(now):
         print "Invalid timer! Will run the script immediately!"
         return
@@ -171,7 +166,7 @@ def main():
         res = os.fork()
         if res == 0:
             proxyAgent.proxyStart()
-        time.sleep(60) 
+        time.sleep(60)
 
     # For distrubited running
     grid = distributed.gridService()
