@@ -33,7 +33,7 @@ import sched
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
 TITLE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-13-black-olive'
+TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-1-black-metallic-gold-white'
 # Address
 # SURNAME = u'张'
 
@@ -347,7 +347,7 @@ class WebDrv(object):
         self._submitAddress()
         self._payment()
         while(1):
-            print("%s: Taking screenshot to %s".format(self.USER_NAME, self.USER_NAME + '.png'))
+            print("{username}: Taking screenshot to {picname}".format(username=self.USER_NAME, picname=self.USER_NAME + '.png'))
             self._getPaymentQR()
             time.sleep(100)
 
