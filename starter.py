@@ -117,7 +117,7 @@ def processArg():
         usage()
         sys.exit(255)
 
-def startOrch(rec, diff):
+def startOrch(rec, diff, idx):
     mod = importlib.import_module(confDB.ENGINE)
     drvClass = getattr(mod, "WebDrv")
     while(True):
@@ -139,7 +139,9 @@ def startOrch(rec, diff):
                     confDB.SELECTIONS
                 )
 
-            web.USER_NAME, web.PASSWD, web.SHOE_SIZE = tuple(rec)
+            web.USER_NAME, web.PASSWD, _ = tuple(rec)
+            web.SHOE_SIZE = confDB.SELECTIONS[idx % len(confDB.SELECTIONS)]
+            print("Shoe size for {user} is {size}".format(user=web.USER_NAME, size = web.SHOE_SIZE))
             web.startOrchestration()
         except nike.doItAgain, e:
             print("{username} Failed! try again!".format(
@@ -176,7 +178,7 @@ def main():
     # TODO: load configuration from DB
     db = confDB()
     iteration = iter(db.info)
-    n = 0
+    idx = 0
 
     try:
         rec = iteration.next()
@@ -184,10 +186,10 @@ def main():
             # start process
             pid = os.fork()
             if pid == 0:
-                startOrch(rec, confDB.CONT * n)
+                startOrch(rec, confDB.CONT * idx, idx)
             else:
                 rec = next(iteration)
-                n = n + 1
+                idx = idx + 1
                 time.sleep(10)
     except StopIteration:
         pass
