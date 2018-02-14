@@ -21,19 +21,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException, \
     NoSuchElementException
 from collections import namedtuple
+from starter import confDB
 import time
 import sys
 import csv
 import sched
 
 
-# TODO: Following content should be put into a DB
-#USER_NAME = 'thealaskalife@hotmail.com'
-#PASSWD = 'Nike6326424'
-#SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
-TITLE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-3-free-throw-line'
 # Address
 # SURNAME = u'张'
 
@@ -104,11 +99,11 @@ class WebDrv(object):
         raise doItAgain()
 
     def _reloadPage(self):
-        self.driver.get(TARGET)
+        self.driver.get(confDB.TARGET)
         try:
             # Confirm whether the page's opened
             WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
-                EC.title_contains(TITLE)
+                EC.title_contains(confDB.TITLE)
             )
         except TimeoutException, e:
             # Wrong URL?

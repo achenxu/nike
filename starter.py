@@ -12,6 +12,7 @@ import importlib
 import sched
 import distributed
 import proxyAgent
+import ConfigParser
 
 
 class confDB(object):
@@ -23,8 +24,19 @@ class confDB(object):
     CONT = 0
     DISTRIBUTED = False
     USEPROXY = False
+    TITLE = u'Air'
+    TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-3-free-throw-line'
 
     def __init__(self):
+        confFile = ConfigParser.SafeConfigParser()
+        confFile.read('conf')
+        confDB.TARGET = confFile.get('default', 'TARGET')
+        confDB.TITLE = confFile.get('default', 'TITLE')
+        confDB.SELECTIONS = confFile.get('default', 'SELECTION').split()
+        print("TARGET url is {url}".format(url=confDB.TARGET))
+        print("TITLE is {title}".format(title=confDB.TITLE))
+        print("Shoe size collection is {size}".format(size=confDB.SELECTIONS))
+
         self.info = []
         with open("userdata.csv") as f :
             csvFile = csv.reader(f)
