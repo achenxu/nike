@@ -33,7 +33,7 @@ import sched
 #SHOE_SIZE = 44
 # TODO: Shall we let user input the url?
 TITLE = u'Air'
-TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-1-black-metallic-gold-white'
+TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-3-free-throw-line'
 # Address
 # SURNAME = u'张'
 
@@ -138,7 +138,7 @@ class WebDrv(object):
                 elif orch.action == 'save_screenshot':
                     driver.save_screenshot(self.USER_NAME + '.png')
 
-            except (TimeoutException, WebDriverException) as e:
+            except (TimeoutException, WebDriverException, NoSuchElementException) as e:
                 print("Error happens during running {script}! Error message is {err}"
                       .format(script = name, err = e))
                 self._error_handle(2)
