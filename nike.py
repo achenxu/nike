@@ -21,7 +21,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException, \
     NoSuchElementException
 from collections import namedtuple
-from starter import confDB
 import time
 import sys
 import csv
@@ -53,10 +52,15 @@ class WebDrv(object):
         verbose = False
     )
 
-    def __init__(self, timer, drv = None, debug = True, submit = False, selections = []):
-        self.debug = debug
-        self.submit = submit
-        self.selections = selections
+    def __init__(self,
+                 timer,
+                 config,
+                 drv = None):
+        self.debug = config.DEBUG
+        self.submit = config.SUBMIT
+        self.selections = config.SELECTIONS
+        self.addressMode = config.ADDRESSMODE
+        self.config = config
         now = time.localtime()
         self.timer = time.mktime(
             time.strptime(
@@ -99,11 +103,11 @@ class WebDrv(object):
         raise doItAgain()
 
     def _reloadPage(self):
-        self.driver.get(confDB.TARGET)
+        self.driver.get(self.config.TARGET)
         try:
             # Confirm whether the page's opened
             WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
-                EC.title_contains(confDB.TITLE)
+                EC.title_contains(self.config.TITLE)
             )
         except TimeoutException, e:
             # Wrong URL?
@@ -122,14 +126,16 @@ class WebDrv(object):
                     EC.visibility_of_element_located(orch.locator)
                 )
                 print '##############after visibility of element located'
-                action = getattr(elem, orch.action)
                 if orch.action == 'click' :
                     WebDriverWait(driver, WebDrv.TIMEOUT).until(
                         EC.element_to_be_clickable(orch.locator)
                     )
-                    action()
+                    elem.click()
                 elif orch.action == 'send_keys':
-                    action(orch.data)
+                    elem.clear()
+                    elem.send_keys(orch.data)
+                elif orch.action == 'select':
+                    elem.send_keys(orch.data)
                 elif orch.action == 'save_screenshot':
                     driver.save_screenshot(self.USER_NAME + '.png')
 
@@ -319,16 +325,115 @@ class WebDrv(object):
         ]
         self._orchestra(orchestrations, self._prepare.__name__)
 
+    def _modifyAddress(self):
+        # Click purchase button
+        orchestrations =  [
+            WebDrv.orchestration(
+                None,
+                (By.CLASS_NAME, 'js-buy'),
+                'click',
+                None
+            )
+        ]
+        self._orchestra(orchestrations, self._modifyAddress.__name__)
+        time.sleep(5)
+
+        drv = self.driver.find_element_by_class_name("shipping-component")
+        orchestrations = [
+            WebDrv.orchestration(
+                drv,
+                (By.CLASS_NAME, 'open-close'),
+                'click',
+                None
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.CLASS_NAME, 'js-edit'),
+                'click',
+                None
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'last-name-shipping'),
+                'send_keys',
+                self.config.ADDRESS.surname
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'first-name-shipping'),
+                'send_keys',
+                self.config.ADDRESS.firstname
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'shipping-address-1'),
+                'send_keys',
+                self.config.ADDRESS.shippingAddress
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'shipping-address-2'),
+                'send_keys',
+                ' '
+            ),
+
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'zipcode'),
+                'send_keys',
+                self.config.ADDRESS.postcode
+            ),
+            WebDrv.orchestration(
+                None,
+                (By.ID, 'phone-number'),
+                'send_keys',
+                self.config.ADDRESS.cellphone
+            ),
+        ]
+        self._orchestra(orchestrations, self._modifyAddress.__name__)
+
+        # TODO: Following code is hack. But it's the only way I can make it
+        # work.Right now I can't find the zone-option via classname,
+        # will fix it in the future.
+        selectItems = self.driver.find_elements_by_tag_name('select')
+        selectItems[3].send_keys(self.config.ADDRESS.zone)
+
+        orchestrations = [
+            WebDrv.orchestration(
+                None,
+                (By.LINK_TEXT, u'保存并继续'),
+                'click',
+                None
+            ),
+        ]
+        self._orchestra(orchestrations, self._modifyAddress.__name__)
+
     def startOrchestration(self):
         self._login()
+        if self.addressMode:
+            self.addressModificationProcess()
+            print("{username}'s address's fixed, please confirm.".format(username=self.USER_NAME))
+            raw_input()
+            return
         if self.timer:
             s = sched.scheduler(time.time, time.sleep)
-            s.enterabs(self.timer, 0, self.timerFunc, [])
+            s.enterabs(self.timer, 0, self.purchaseProcess, [])
             s.run()
         else:
-            self.timerFunc()
+            self.purchaseProcess()
 
-    def timerFunc(self):
+    def addressModificationProcess(self):
+        print("{t}:Now try to modify {u}'s address!".format(t = time.asctime(time.localtime()), u = self.USER_NAME))
+        WebDriverWait(self.driver, WebDrv.TIMEOUT).until(
+                EC.element_to_be_clickable((
+                    By.CLASS_NAME,
+                    'size-selector-component'
+                ))
+        )
+        self._submitSize()
+        self._modifyAddress()
+
+    def purchaseProcess(self):
         print("{t}:Orchestration of {u} starts!".format(t = time.asctime(time.localtime()), u = self.USER_NAME))
         #self._reloadPage()
         WebDriverWait(self.driver, WebDrv.TIMEOUT).until(

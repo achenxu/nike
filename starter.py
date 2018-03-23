@@ -13,7 +13,20 @@ import sched
 import distributed
 import proxyAgent
 import ConfigParser
+from collections import namedtuple
 
+address = namedtuple(
+    'address',
+    [
+        'surname',
+        'firstname',
+        'shippingAddress',
+        'zone',
+        'postcode',
+        'cellphone'
+    ],
+    verbose = False
+)
 
 class confDB(object):
     DEBUG = True
@@ -25,23 +38,44 @@ class confDB(object):
     DISTRIBUTED = False
     USEPROXY = False
     TITLE = u'Air'
-    TARGET = 'https://www.nike.com/cn/launch/t/air-jordan-3-free-throw-line'
+    TARGET = ''
+    ADDRESSMODE = False
+    ADDRESS = None
 
     def __init__(self):
-        confFile = ConfigParser.SafeConfigParser()
-        confFile.read('conf')
-        confDB.TARGET = confFile.get('default', 'TARGET')
-        confDB.TITLE = confFile.get('default', 'TITLE')
-        confDB.SELECTIONS = confFile.get('default', 'SELECTION').split()
+        self.confFile = ConfigParser.SafeConfigParser()
+        self.confFile.read('conf')
+        confDB.TARGET = self.confFile.get('default', 'TARGET')
+        confDB.TITLE = self.confFile.get('default', 'TITLE')
+        confDB.SELECTIONS = self.confFile.get('default', 'SELECTION').split()
         print("TARGET url is {url}".format(url=confDB.TARGET))
         print("TITLE is {title}".format(title=confDB.TITLE))
         print("Shoe size collection is {size}".format(size=confDB.SELECTIONS))
+        if confDB.ADDRESSMODE:
+            self._loadAddress()
 
         self.info = []
         with open("userdata.csv") as f :
             csvFile = csv.reader(f)
             for row in csvFile :
                 self.info.append(row)
+
+    def _loadAddress(self):
+        confDB.ADDRESS = address(
+            self.confFile.get("address", "surname").decode('utf8'),
+            self.confFile.get("address", "firstname").decode('utf8'),
+            self.confFile.get("address", "shippingAddress").decode('utf8'),
+            self.confFile.get("address", "zone").decode('utf8'),
+            self.confFile.get("address", "postcode").decode('utf8'),
+            self.confFile.get("address", "cellphone").decode('utf8'),
+        )
+        print('Will update new address:')
+        print('surname will be {s}'.format(s=confDB.ADDRESS.surname))
+        print('firstname will be {s}'.format(s=confDB.ADDRESS.firstname))
+        print('shippingAddress will be {s}'.format(s=confDB.ADDRESS.shippingAddress))
+        print('zone will be {s}'.format(s=confDB.ADDRESS.zone))
+        print('postcode will be {s}'.format(s=confDB.ADDRESS.postcode))
+        print('cellphone will be {s}'.format(s=confDB.ADDRESS.cellphone))
 
 def doNothing():
     pass
@@ -68,7 +102,7 @@ def processArg():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            "Dpdne:t:c:s:",
+            "Dpdne:t:c:s:A",
             [
                 "debug",
                 "nosubmit",
@@ -77,7 +111,8 @@ def processArg():
                 "continuous",
                 "start_script",
                 "distributed",
-                "useProxy"
+                "useProxy",
+                "address"
             ]
         )
         print("============ opts ==================");
@@ -122,6 +157,13 @@ def processArg():
                 # Using proxy for distributed running
                 # Default: False
                 confDB.USEPROXY = True
+            if o in ("-A", "--address"):
+                # Address modification mode
+                # Only modify an account's address then exit
+                # Does NOT support distributed mode now!
+                # TODO: Shall we consider to support distributed mode?
+                # Default: False
+                confDB.ADDRESSMODE = True
 
     except getopt.GetoptError, e:
         # TODO: Need a logger class sooner or later
@@ -137,21 +179,17 @@ def startOrch(rec, diff, idx):
             if confDB.DISTRIBUTED == True:
                 web = drvClass(
                     re.sub("[0-9]*$", str(diff), confDB.TIMER),
-                    distributed.genRemoteDrv(confDB.USEPROXY),
-                    confDB.DEBUG,
-                    confDB.SUBMIT,
-                    confDB.SELECTIONS
+                    confDB,
+                    distributed.genRemoteDrv(confDB.USEPROXY)
                 )
             else:
                 web = drvClass(
                     re.sub("[0-9]*$", str(diff), confDB.TIMER),
-                    None,
-                    confDB.DEBUG,
-                    confDB.SUBMIT,
-                    confDB.SELECTIONS
+                    confDB,
+                    None
                 )
 
-            web.USER_NAME, web.PASSWD, _ = tuple(rec)
+            web.USER_NAME, web.PASSWD = tuple(rec)
             web.SHOE_SIZE = confDB.SELECTIONS[idx % len(confDB.SELECTIONS)]
             print("Shoe size for {user} is {size}".format(user=web.USER_NAME, size = web.SHOE_SIZE))
             web.startOrchestration()
@@ -199,6 +237,9 @@ def main():
             pid = os.fork()
             if pid == 0:
                 startOrch(rec, confDB.CONT * idx, idx)
+                # In address mode, now the process can be killed.
+                if confDB.ADDRESSMODE:
+                    return
             else:
                 rec = next(iteration)
                 idx = idx + 1
