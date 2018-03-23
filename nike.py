@@ -396,6 +396,8 @@ class WebDrv(object):
         # work.Right now I can't find the zone-option via classname,
         # will fix it in the future.
         selectItems = self.driver.find_elements_by_tag_name('select')
+        selectItems[1].send_keys(u'上海市')
+        selectItems[2].send_keys(u'上海市')
         selectItems[3].send_keys(self.config.ADDRESS.zone)
 
         orchestrations = [
